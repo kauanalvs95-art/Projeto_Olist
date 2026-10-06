@@ -48,3 +48,26 @@ def read_books(
     if authors_name:
         db_books = db_books.filter(Book.authors.any(Author.name.ilike(f"%{authors_name}%")))
     return db_books.offset(skip).limit(limit).all()
+
+@router.delete('/books/{book_id}', response_model=BookRead)
+def delete_book(book_id: int, db: Session = Depends(get_db)):
+    db_book = db.query(Book).filter(Book.id == book_id).first()
+    if db_book is None:
+        raise HTTPException(status_code=404, detail="Book not found")
+    db.delete(db_book)
+    db.commit()
+    return {"detail": "Book deleted successfully"}
+
+@router.put('/books/{book_id}', response_model=BookRead)
+def update_book(book_id: int, book: BookCreate, db: Session = Depends(get_db)):
+    db_book = db.query(Book).filter(Book.id == book_id).first()
+    if db_book is None:
+        raise HTTPException(status_code=404, detail="Book not found")
+    authors_wanted = db.query(Author).filter(Author.id.in_(book.authors_ids)).all()
+    db_book.name = book.name
+    db_book.edition = book.edition
+    db_book.publication_year = book.publication_year
+    db_book.authors = authors_wanted
+    db.commit()
+    db.refresh(db_book)
+    return db_book
