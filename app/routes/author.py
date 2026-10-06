@@ -14,7 +14,7 @@ def create_author(author: AuthorCreate, db: Session = Depends(get_db)):
     db.refresh(db_author)
     return db_author
 
-@router.get("/author/{author_id}", response_model=AuthorRead)
+@router.get("/authors/{author_id}", response_model=AuthorRead)
 def read_author(author_id: int, db: Session = Depends(get_db)):
     db_author = db.query(Author).filter(Author.id == author_id).first()
     if db_author is None:
