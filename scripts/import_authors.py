@@ -5,7 +5,7 @@ from sqlalchemy import insert
 
 from app.database import SessionLocal
 from app.models.author import Author
-from app.models.book import Book  # noqa: F401  (precisa estar importado pro SQLAlchemy resolver a relação N:N)
+from app.models.book import Book
 
 BATCH_SIZE = 10_000
 

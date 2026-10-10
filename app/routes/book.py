@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.post("/books/", response_model=BookRead)
 def create_book(book: BookCreate, db: Session = Depends(get_db)):
-    authors_wanted = db.query(Author).filter(Author.id.in_(book.authors_ids)).all()
+    authors_wanted = db.query(Author).filter(Author.id.in_(book.authors)).all()
     db_book =Book(
         name=book.name,
         edition=book.edition,
@@ -47,9 +47,9 @@ def read_books(
         db_books = db_books.filter(Book.publication_year == publication_year)
     if authors_name:
         db_books = db_books.filter(Book.authors.any(Author.name.ilike(f"%{authors_name}%")))
-    return db_books.offset(skip).limit(limit).all()
+    return db_books.order_by(Book.id).offset(skip).limit(limit).all()
 
-@router.delete('/books/{book_id}', response_model=BookRead)
+@router.delete('/books/{book_id}')
 def delete_book(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(Book).filter(Book.id == book_id).first()
     if db_book is None:
@@ -63,7 +63,7 @@ def update_book(book_id: int, book: BookCreate, db: Session = Depends(get_db)):
     db_book = db.query(Book).filter(Book.id == book_id).first()
     if db_book is None:
         raise HTTPException(status_code=404, detail="Book not found")
-    authors_wanted = db.query(Author).filter(Author.id.in_(book.authors_ids)).all()
+    authors_wanted = db.query(Author).filter(Author.id.in_(book.authors)).all()
     db_book.name = book.name
     db_book.edition = book.edition
     db_book.publication_year = book.publication_year

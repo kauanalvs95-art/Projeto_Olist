@@ -5,7 +5,7 @@ class BookCreate(BaseModel):
     name: str
     edition: str
     publication_year: int
-    authors_ids: list[int]
+    authors: list[int]
 
 class BookRead(BaseModel):
     id: int

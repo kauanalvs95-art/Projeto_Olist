@@ -38,3 +38,9 @@ def client():
     app.dependency_overrides.clear()
 
     engine.dispose()
+
+
+@pytest.fixture
+def author_id(client):
+    response = client.post("/authors/", json={"name": "Machado de Assis"})
+    return response.json()["id"]

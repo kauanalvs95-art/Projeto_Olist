@@ -26,7 +26,7 @@ def read_authors(author_name: str = None, skip: int = 0, limit: int = 10, db: Se
     db_authors = db.query(Author)
     if author_name:
         db_authors = db_authors.filter(Author.name.ilike(f"%{author_name}%"))
-    return db_authors.offset(skip).limit(limit).all()
+    return db_authors.order_by(Author.id).offset(skip).limit(limit).all()
 
 @router.delete('/authors/{author_id}')
 def delete_author(author_id: int, db: Session = Depends(get_db)):
