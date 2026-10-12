@@ -1,170 +1,160 @@
-# Projeto Olist — API REST para Livros e Autores
+# API da Biblioteca
 
-Projeto desenvolvido como desafio prático de backend, inspirado no desafio técnico disponibilizado pela [Olist](https://github.com/olist/work-at-olist).
-
-O objetivo foi colocar em prática meus conhecimentos em desenvolvimento backend, construindo uma API REST para gerenciamento de livros e autores, com persistência em banco de dados relacional, operações CRUD, filtros de consulta e importação de dados por CSV.
-
-Mais do que desenvolver um projeto para meu portfólio, utilizei esse desafio como uma oportunidade de estudar, enfrentar problemas reais de desenvolvimento e aprimorar minhas habilidades com Python e construção de APIs.
-
-## Objetivos do projeto
-
-- Desenvolver uma API REST utilizando Python e FastAPI.
-- Implementar operações CRUD para livros e autores.
-- Modelar relacionamentos entre entidades em um banco de dados relacional.
-- Implementar filtros e paginação nas consultas.
-- Criar um processo de importação de autores por arquivos CSV, utilizando processamento em lotes.
-- Praticar organização de código, validação de dados e testes automatizados.
-
-## Tecnologias utilizadas
-
-- **Python** — linguagem de programação.
-- **FastAPI** — desenvolvimento dos endpoints da API REST.
-- **SQLAlchemy** — ORM para interação com o banco de dados.
-- **Pydantic** — validação e estruturação dos dados de entrada e saída.
-- **PostgreSQL** — banco de dados relacional.
-- **Docker Compose** — configuração do ambiente de banco de dados.
-- **Pytest** — testes automatizados.
-- **SQLite** — banco de dados em memória utilizado nos testes.
-- **Uvicorn** — servidor ASGI para executar a aplicação.
+API REST de uma biblioteca que armazena **autores** e **livros**. Foi construída como solução do desafio de backend [Work at Olist](https://github.com/olist/work-at-olist).
 
 ## Funcionalidades
 
-### Autores
+- Importação de autores a partir de um arquivo CSV (mais de um milhão de linhas) com um script de linha de comando.
+- Listagem paginada de autores, com busca opcional por nome.
+- CRUD completo de autores e de livros.
+- Um livro pode ter mais de um autor (relacionamento muitos-para-muitos).
+- Livros podem ser filtrados por nome, edição, ano de publicação e autor. Todos os filtros são opcionais e podem ser combinados.
+- Testes automatizados que rodam em um banco em memória, então nunca encostam nos dados reais.
 
-- Cadastro de autores.
-- Consulta de um autor pelo ID.
-- Listagem de autores com paginação.
-- Busca de autores pelo nome.
-- Atualização de informações.
-- Exclusão de autores.
+## Tecnologias
 
-### Livros
-
-- Cadastro de livros associados a um ou mais autores.
-- Consulta de um livro pelo ID.
-- Listagem de livros com paginação.
-- Filtros por nome, edição, ano de publicação e nome do autor.
-- Atualização das informações de um livro e de seus autores associados.
-- Exclusão de livros.
-
-### Importação de autores por CSV
-
-O projeto possui um script para importar autores de um arquivo CSV com a coluna `name`.
-
-A importação utiliza lotes de até 10.000 registros, buscando reduzir a sobrecarga de executar operações individuais para cada autor.
+| Área | Ferramenta |
+| --- | --- |
+| Linguagem | Python 3.14 |
+| Framework web | FastAPI |
+| ORM | SQLAlchemy 2 |
+| Banco de dados | PostgreSQL 18 (driver psycopg 3) |
+| Containers | Docker Compose (PostgreSQL e Adminer) |
+| Testes | pytest, httpx |
+| Dados de teste | Faker |
 
 ## Estrutura do projeto
 
-```text
-Projeto_Olist/
+```
+.
 ├── app/
-│   ├── main.py
-│   ├── database.py
-│   ├── models/
-│   │   ├── author.py
-│   │   └── book.py
-│   ├── routes/
-│   │   ├── author.py
-│   │   └── book.py
-│   └── schemas/
-│       ├── author.py
-│       └── book.py
+│   ├── main.py          # aplicação FastAPI
+│   ├── database.py      # engine, sessão e dependência get_db
+│   ├── models/          # modelos SQLAlchemy (Author, Book)
+│   ├── schemas/         # schemas Pydantic (entrada e saída)
+│   └── routes/          # endpoints de autores e livros
 ├── scripts/
-│   ├── create_tables.py
-│   └── import_authors.py
-├── tests/
-├── .env.example
+│   ├── create_tables.py     # cria as tabelas do banco
+│   ├── import_authors.py    # importa autores de um arquivo CSV
+│   └── generate_test_csv.py # gera um CSV com nomes de autores falsos
+├── tests/               # testes com pytest
 ├── docker-compose.yml
+├── .env.example
 └── requirements.txt
 ```
 
-## Como executar o projeto
+## Instalação
 
-### Pré-requisitos
-
-- Python instalado em uma versão compatível com as dependências.
-- Docker e Docker Compose.
-- Git.
-
-### 1. Clone o repositório
+### 1. Clone o repositório e crie um ambiente virtual
 
 ```bash
-git clone https://github.com/kauanalvs95-art/Projeto_Olist.git
-cd Projeto_Olist
-```
-
-### 2. Crie um ambiente virtual
-
-```bash
-python -m venv .venv
-```
-
-Ative o ambiente virtual:
-
-**Linux:**
-
-```bash
-source .venv/bin/activate
-```
-
-**Windows:**
-
-```powershell
-.venv\Scripts\activate
-```
-
-### 3. Instale as dependências
-
-```bash
+git clone <url-do-repositorio>
+cd <pasta-do-repositorio>
+python -m venv venv
+source venv/bin/activate        # Windows (PowerShell): venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-### 4. Configure as variáveis de ambiente
-
-Crie o arquivo `.env` a partir do exemplo disponibilizado:
+### 2. Configure as variáveis de ambiente
 
 ```bash
 cp .env.example .env
 ```
 
-Configure as variáveis de conexão com o PostgreSQL de acordo com seu ambiente. Os valores de usuário, senha e banco de dados precisam corresponder aos configurados no Docker Compose.
+Abra o `.env` e preencha com os seus próprios valores. O mesmo usuário, senha e nome de banco devem ser usados nas variáveis `POSTGRES_*` e na `DATABASE_URL`.
 
-### 5. Inicie o banco de dados
+| Variável | Descrição |
+| --- | --- |
+| `POSTGRES_USER` | Usuário do banco (lida pelo Docker Compose) |
+| `POSTGRES_PASSWORD` | Senha do banco (lida pelo Docker Compose) |
+| `POSTGRES_DB` | Nome do banco (lida pelo Docker Compose) |
+| `DATABASE_URL` | String de conexão usada pela aplicação |
 
-```bash
-docker compose up -d db
+Exemplo:
+
+```
+POSTGRES_USER=usuario
+POSTGRES_PASSWORD=senha
+POSTGRES_DB=nome_do_banco
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/nome_do_banco
 ```
 
-### 6. Crie as tabelas
+O arquivo `.env` é ignorado pelo Git. Nunca faça commit dele.
 
-Com o banco de dados disponível e o arquivo `.env` configurado, execute:
+> **Atenção:** o PostgreSQL só lê `POSTGRES_PASSWORD` na primeira vez que o volume é criado. Se você mudar a senha no `.env` depois disso, ela não muda no banco. Para trocar, use `ALTER USER usuario PASSWORD 'nova_senha';` ou apague o volume com `docker compose down -v` (isso apaga os dados).
+
+### 3. Suba o banco de dados
+
+Com Docker:
+
+```bash
+docker compose up -d
+```
+
+Isso inicia o PostgreSQL na porta `5432` e o [Adminer](https://www.adminer.org/) (interface web para o banco) na porta `8080`.
+
+**Sem Docker:** instale o PostgreSQL localmente, crie um banco e um usuário, e aponte a `DATABASE_URL` do `.env` para ele. Nada mais muda.
+
+### 4. Crie as tabelas
 
 ```bash
 python -m scripts.create_tables
 ```
 
-### 7. Execute a API
+## Rodando a API
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-A API estará disponível localmente em:
+A documentação interativa (Swagger UI) fica em <http://127.0.0.1:8000/docs>.
 
-`http://127.0.0.1:8000`
+## Importando autores de um arquivo CSV
 
-## Documentação da API
+O arquivo CSV deve ter uma única coluna chamada `name`, com um autor por linha:
 
-O FastAPI disponibiliza documentação interativa para consultar e testar os endpoints.
+```
+name
+Luciano Ramalho
+Osvaldo Santana Neto
+David Beazley
+```
 
-- **Swagger UI:** http://127.0.0.1:8000/docs
-- **ReDoc:** http://127.0.0.1:8000/redoc
+Rode a importação a partir da raiz do projeto:
 
-## Exemplos de utilização
+```bash
+python -m scripts.import_authors caminho/para/autores.csv
+```
 
-### Criar um autor
+O script lê o arquivo linha a linha e insere os autores em lotes de 10.000 registros usando inserção em massa (*bulk insert*). Isso mantém o uso de memória baixo e evita um `INSERT` e um `COMMIT` por autor.
 
-**POST** `/authors/`
+**Resultado:** a importação de um arquivo com **1.000.000 de autores levou cerca de 12 segundos** na minha máquina (veja a seção Ambiente, abaixo).
+
+Para gerar um arquivo de teste com nomes falsos, use `scripts/generate_test_csv.py` (precisa do `Faker`, que está no `requirements.txt`). O nome do arquivo de saída e a quantidade de linhas são definidos dentro do script. Arquivos CSV são ignorados pelo Git.
+
+> **Atenção:** a tabela `authors` não exige nomes únicos, então importar o mesmo arquivo duas vezes cria duplicatas. Para recomeçar, rode `TRUNCATE authors RESTART IDENTITY CASCADE;` no banco.
+
+## Endpoints da API
+
+### Autores
+
+| Método | Caminho | Descrição |
+| --- | --- | --- |
+| `POST` | `/authors/` | Cria um autor |
+| `GET` | `/authors/` | Lista autores (paginado) |
+| `GET` | `/authors/{author_id}` | Busca um autor |
+| `PUT` | `/authors/{author_id}` | Atualiza um autor |
+| `DELETE` | `/authors/{author_id}` | Remove um autor |
+
+Parâmetros de consulta do `GET /authors/`:
+
+| Parâmetro | Padrão | Descrição |
+| --- | --- | --- |
+| `author_name` | nenhum | Busca parcial, sem diferenciar maiúsculas de minúsculas, no nome do autor |
+| `skip` | `0` | Quantidade de registros a pular |
+| `limit` | `10` | Quantidade máxima de registros retornados |
+
+Criar ou atualizar um autor:
 
 ```json
 {
@@ -172,90 +162,93 @@ O FastAPI disponibiliza documentação interativa para consultar e testar os end
 }
 ```
 
-### Listar autores
+### Livros
 
-**GET** `/authors/?skip=0&limit=10`
+| Método | Caminho | Descrição |
+| --- | --- | --- |
+| `POST` | `/books/` | Cria um livro |
+| `GET` | `/books/` | Lista livros (paginado, com filtros opcionais) |
+| `GET` | `/books/{book_id}` | Busca um livro |
+| `PUT` | `/books/{book_id}` | Atualiza um livro |
+| `DELETE` | `/books/{book_id}` | Remove um livro |
 
-Para pesquisar pelo nome:
-
-**GET** `/authors/?author_name=Machado`
-
-### Criar um livro
-
-**POST** `/books/`
+Criar ou atualizar um livro. O campo `authors` é uma lista de ids de autores, ou seja, os ids de autores que já existem no banco:
 
 ```json
 {
   "name": "Dom Casmurro",
-  "edition": "1st",
+  "edition": "1ª edição",
   "publication_year": 1899,
   "authors": [1]
 }
 ```
 
-O campo `authors` recebe uma lista de IDs de autores previamente cadastrados.
+A resposta traz os autores completos, não apenas os ids:
 
-### Consultar livros com filtros
-
-**GET** `/books/?name=Dom&publication_year=1899`
-
-Também é possível utilizar os parâmetros `edition` e `authors_name`, além dos parâmetros `skip` e `limit` para paginação.
-
-### Atualizar e excluir registros
-
-- **PUT** `/books/{book_id}` — atualiza um livro.
-- **DELETE** `/books/{book_id}` — exclui um livro.
-- **PUT** `/authors/{author_id}` — atualiza um autor.
-- **DELETE** `/authors/{author_id}` — exclui um autor.
-
-## Importação de autores
-
-Prepare um arquivo CSV com a coluna `name` e os nomes dos autores:
-
-```csv
-name
-Machado de Assis
-José de Alencar
-Clarice Lispector
+```json
+{
+  "id": 1,
+  "name": "Dom Casmurro",
+  "edition": "1ª edição",
+  "publication_year": 1899,
+  "authors": [
+    { "id": 1, "name": "Machado de Assis" }
+  ]
+}
 ```
 
-Execute o comando na raiz do projeto:
+Se algum id em `authors` não existir, a API retorna `404` com a mensagem `Author not found`, e o livro não é criado nem alterado.
+
+Parâmetros de consulta do `GET /books/` (todos opcionais e combináveis):
+
+| Parâmetro | Descrição |
+| --- | --- |
+| `name` | Busca parcial, sem diferenciar maiúsculas de minúsculas, no nome do livro |
+| `edition` | Busca parcial, sem diferenciar maiúsculas de minúsculas, na edição |
+| `publication_year` | Ano de publicação exato |
+| `authors_name` | Busca parcial, sem diferenciar maiúsculas de minúsculas, no nome de qualquer autor do livro |
+| `skip` | Quantidade de registros a pular (padrão `0`) |
+| `limit` | Quantidade máxima de registros retornados (padrão `10`) |
+
+Sem nenhum filtro, o endpoint retorna todos os livros, paginados.
+
+## Rodando os testes
 
 ```bash
-python -m scripts.import_authors caminho/do/arquivo.csv
+python -m pytest -v
 ```
 
-O script processa os registros em lotes e informa a quantidade de autores importados.
+Os testes usam um banco SQLite em memória. A dependência `get_db` da aplicação é substituída durante os testes, então o PostgreSQL real nunca é usado e cada teste começa com as tabelas vazias. Não é preciso ter o Docker rodando.
 
-## Testes automatizados
+A suíte tem 20 testes, que cobrem:
 
-Os testes utilizam Pytest e um banco SQLite em memória, permitindo validar as operações da API sem depender de uma instância do PostgreSQL para a execução da suíte de testes.
+- Criar, ler, atualizar e remover autores e livros.
+- Paginação e busca de autores.
+- Paginação e cada filtro de livros (nome, ano de publicação e autor), além da listagem sem filtros.
+- Respostas `404` para autores e livros que não existem.
+- Rejeição de livros que referenciam autores inexistentes, tanto na criação quanto na atualização.
 
-Para executar os testes, utilize:
+## Decisões de projeto
 
-```bash
-pytest
-```
+- **Relacionamento muitos-para-muitos:** livros e autores são ligados por uma tabela de associação (`relationships`), criada junto com as demais tabelas.
+- **Importação em massa, em lotes:** o CSV é lido aos poucos e inserido 10.000 linhas por vez, em vez de carregar o arquivo inteiro na memória ou fazer commit linha a linha.
+- **Paginação estável:** as listagens são ordenadas por `id` antes de aplicar `skip` e `limit`. Sem uma ordem explícita, o PostgreSQL não garante a ordem das linhas, e um registro poderia aparecer duas vezes ou ser pulado entre uma página e outra.
+- **Filtro por autor sem duplicatas:** o filtro por autor nos livros usa `EXISTS` (`any()` no SQLAlchemy) em vez de `JOIN`, então um livro com vários autores que combinam com a busca aparece só uma vez.
+- **Schemas separados para entrada e saída:** os schemas de entrada recebem uma lista de ids de autores, e os de saída devolvem os objetos completos dos autores.
+- **Configuração por variáveis de ambiente:** as credenciais não ficam no código nem no `docker-compose.yml`, seguindo a abordagem do [12-Factor App](https://12factor.net).
 
-Os testes contemplam operações CRUD, consultas com filtros, paginação e tratamento de registros inexistentes ou de referências a autores inválidos.
+## Limitações conhecidas
 
-## Aprendizados
+- A busca de autores usa `ILIKE '%texto%'`, que não consegue aproveitar um índice comum. Com um milhão de autores, ela varre a tabela inteira. Um índice trigram (`pg_trgm`) aceleraria a busca.
+- A paginação com `OFFSET` fica mais lenta em páginas muito profundas de tabelas grandes.
 
-O desenvolvimento deste projeto foi uma oportunidade para aprofundar meus conhecimentos em:
+## Ambiente
 
-- Construção e organização de APIs REST com FastAPI.
-- Mapeamento objeto-relacional com SQLAlchemy.
-- Modelagem de relacionamentos muitos-para-muitos.
-- Validação de dados com Pydantic.
-- Integração com PostgreSQL e configuração por variáveis de ambiente.
-- Importação de dados em lotes.
-- Escrita de testes automatizados com Pytest.
-- Organização de um projeto backend e documentação técnica.
+O projeto foi desenvolvido e testado neste ambiente:
 
-## Sobre o projeto
-
-Este projeto foi desenvolvido individualmente como um desafio de aprendizado, com base nos requisitos do desafio técnico da Olist.
-
-**Repositório:** [Projeto_Olist — GitHub](https://github.com/kauanalvs95-art/Projeto_Olist)
-
-O projeto representa parte da minha jornada de aprendizado em desenvolvimento backend e meu interesse em evoluir por meio da prática, da resolução de problemas e da construção de aplicações reais.
+- Arch Linux
+- Python 3.14
+- Docker e Docker Compose
+- PostgreSQL 18
+- Visual Studio Code
+- Principais bibliotecas: FastAPI, SQLAlchemy, Pydantic, psycopg, pytest, httpx, Faker (veja o `requirements.txt`)
