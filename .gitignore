@@ -30,3 +30,5 @@ archive.zip
 .codspeed
 
 *.csv
+
+.env

@@ -62,3 +62,4 @@ def test_list_authors_search(client):
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert response.json()[0]["name"] == "Machado de Assis"
+

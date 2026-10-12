@@ -16,6 +16,8 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
         publication_year=book.publication_year,
         authors=authors_wanted
     )
+    if len(authors_wanted) != len(set(book.authors)):
+        raise HTTPException(status_code=404, detail="Author not found")
     db.add(db_book)
     db.commit()
     db.refresh(db_book)
@@ -64,6 +66,8 @@ def update_book(book_id: int, book: BookCreate, db: Session = Depends(get_db)):
     if db_book is None:
         raise HTTPException(status_code=404, detail="Book not found")
     authors_wanted = db.query(Author).filter(Author.id.in_(book.authors)).all()
+    if len(authors_wanted) != len(set(book.authors)):
+        raise HTTPException(status_code=404, detail="Author not found")
     db_book.name = book.name
     db_book.edition = book.edition
     db_book.publication_year = book.publication_year
